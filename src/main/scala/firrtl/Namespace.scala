@@ -27,11 +27,12 @@ class Namespace private {
     else {
       var idx = indices.getOrElse(value, 0)
       var str = value
-      while
+      var cond = true
+      while(cond) {
         str = s"${value}_$idx"
         idx += 1
-        !(tryName(str))
-      do ()
+        cond = !(tryName(str))
+      }
       // do {
       //   str = s"${value}_$idx"
       //   idx += 1

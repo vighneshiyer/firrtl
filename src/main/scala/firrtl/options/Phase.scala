@@ -194,7 +194,7 @@ trait DependencyAPI[A <: DependencyAPI[A]] { this: TransformLike[_] =>
   "Use an explicit `override def invalidates` returning false. This will be removed in FIRRTL 1.5.",
   "FIRRTL 1.4"
 )
-trait PreservesAll[A <: DependencyAPI[A]] { this: DependencyAPI[A] & TransformLike[_] =>
+trait PreservesAll[A <: DependencyAPI[A]] { this: DependencyAPI[A] with TransformLike[_] =>
 
   override final def invalidates(a: A): Boolean = false
 

@@ -23,9 +23,9 @@ lazy val firrtlSettings = Seq(
     "-language:reflectiveCalls",
     "-language:existentials",
     "-language:implicitConversions",
-    "-rewrite",
-    "-source:3.0-migration",
-    "-source:3.2-migration",
+    //"-rewrite",
+    //"-source:3.0-migration",
+    //"-source:3.2-migration",
     //"-Yrangepos" // required by SemanticDB compiler plugin
   ),
   // Always target Java8 for maximum compatibility
