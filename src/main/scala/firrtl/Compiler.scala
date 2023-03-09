@@ -18,12 +18,23 @@ import firrtl.stage.Forms
 import firrtl.transforms.DedupAnnotationsTransform
 
 /** Container of all annotations for a Firrtl compiler */
-class AnnotationSeq private (underlying: Seq[Annotation]) {
-  def toSeq: Seq[Annotation] = underlying
-}
+// AnnotationSeq should be opaque to match Scala 2.x behavior, but it is a **useless** abstraction
+//   The API is the same, but the underlying Seq[Annotation] is no longer private
+//   There are many cases where the Scala 3 compiler can't infer AnnotationSeq =:= Seq[Annotation] and that results in many type errors
+//   The way to resolve it, is explicit applications of apply() or toSeq(), which breaks the opacity of AnnotationSeq anyways
+type AnnotationSeq = Seq[Annotation]
 object AnnotationSeq {
-  def apply(xs: Seq[Annotation]): AnnotationSeq = new AnnotationSeq(xs)
+   def apply(xs: Seq[Annotation]): AnnotationSeq = xs
 }
+extension (x: AnnotationSeq) {
+   def toSeq: Seq[Annotation] = x
+}
+// class AnnotationSeq private (underlying: Seq[Annotation]) {
+//   def toSeq: Seq[Annotation] = underlying
+// }
+// object AnnotationSeq {
+//   def apply(xs: Seq[Annotation]): AnnotationSeq = new AnnotationSeq(xs)
+// }
 
 /** Current State of the Circuit
   *

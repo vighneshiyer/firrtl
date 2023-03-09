@@ -33,8 +33,10 @@ object Dependency {
     }
   }
 
-  private def isSingleton(obj: AnyRef): Boolean = {
-    reflect.runtime.currentMirror.reflect(obj).symbol.isModuleClass
+  private def isSingleton[A](obj: A)(implicit ev: A <:< Singleton = null): Boolean = {
+    // https://stackoverflow.com/questions/36018355/in-scala-is-there-any-way-to-check-if-an-instance-is-a-singleton-object-or-not
+    //reflect.runtime.currentMirror.reflect(obj).symbol.isModuleClass
+    Option(ev).isDefined
   }
 }
 
@@ -192,7 +194,7 @@ trait DependencyAPI[A <: DependencyAPI[A]] { this: TransformLike[_] =>
   "Use an explicit `override def invalidates` returning false. This will be removed in FIRRTL 1.5.",
   "FIRRTL 1.4"
 )
-trait PreservesAll[A <: DependencyAPI[A]] { this: DependencyAPI[A] =>
+trait PreservesAll[A <: DependencyAPI[A]] { this: DependencyAPI[A] & TransformLike[_] =>
 
   override final def invalidates(a: A): Boolean = false
 
