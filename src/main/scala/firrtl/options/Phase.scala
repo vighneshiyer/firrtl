@@ -33,10 +33,11 @@ object Dependency {
     }
   }
 
-  private def isSingleton[A](obj: A)(implicit ev: A <:< Singleton = null): Boolean = {
+  private def isSingleton[A](obj: A): Boolean = {
     // https://stackoverflow.com/questions/36018355/in-scala-is-there-any-way-to-check-if-an-instance-is-a-singleton-object-or-not
-    //reflect.runtime.currentMirror.reflect(obj).symbol.isModuleClass
-    Option(ev).isDefined
+    // https://stackoverflow.com/questions/37388677/how-to-check-if-a-value-is-a-scala-singleton-object-without-a-static-type?noredirect=1&lq=1
+    // reflect.runtime.currentMirror.reflect(obj).symbol.isModuleClass
+    obj.getClass.getName.endsWith("$")
   }
 }
 
@@ -57,7 +58,7 @@ case class Dependency[+A <: DependencyAPI[_]](id: Either[Class[_ <: A], A with S
   }
 
   /** Wrap an [[IllegalAccessException]] due to attempted object construction in a [[DependencyManagerException]] */
-  private def safeConstruct[A](a: Class[_ <: A]): A = try { a.newInstance }
+  private def safeConstruct[A](a: Class[_ <: A]): A = try { a.getDeclaredConstructor().newInstance() }
   catch {
     case e: IllegalAccessException =>
       throw new DependencyManagerException(s"Failed to construct '$a'! (Did you try to construct an object?)", e)

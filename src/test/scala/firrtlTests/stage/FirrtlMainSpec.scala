@@ -20,7 +20,6 @@ import org.scalatest.matchers.should.Matchers
   * interface and is more suitable to an Acceptance Testing style.
   */
 class FirrtlMainSpec extends AnyFeatureSpec with GivenWhenThen with Matchers with firrtl.testutils.Utils {
-
   /** Parameterizes one test of [[FirrtlMain]]. Running the [[FirrtlMain]] `main` with certain args should produce
     * certain files and not produce others.
     * @param args arguments to pass
@@ -73,7 +72,7 @@ class FirrtlMainSpec extends AnyFeatureSpec with GivenWhenThen with Matchers wit
 
       When(s"""the user tries to compile with '${p.argsString}'""")
       val (stdout, stderr, result) =
-        grabStdOutErr { catchStatus { f.stage.main(inputFile ++ Array("-td", td.buildDir.toString) ++ p.args) } }
+        grabStdOutErr { f.stage.mainInner(inputFile ++ Array("-td", td.buildDir.toString) ++ p.args) }
 
       p.stdout match {
         case Some(a) =>
@@ -96,10 +95,10 @@ class FirrtlMainSpec extends AnyFeatureSpec with GivenWhenThen with Matchers wit
       p.result match {
         case 0 =>
           And(s"the exit code should be 0")
-          result shouldBe a[Right[_, _]]
+          result shouldBe 0
         case a =>
           And(s"the exit code should be $a")
-          result shouldBe (Left(a))
+          result shouldBe a
       }
 
       p.files.foreach { f =>
@@ -164,12 +163,7 @@ class FirrtlMainSpec extends AnyFeatureSpec with GivenWhenThen with Matchers wit
       val f = new FirrtlMainFixture
 
       When("the user passes '--help'")
-      /* Note: THIS CANNOT CATCH THE STATUS BECAUSE SCOPT CATCHES ALL THROWABLE!!! The catchStatus is only used to prevent
-       * sys.exit from killing the test. However, this should additionally return an exit code of 0 and not print an
-       * error. The nature of running this through catchStatus causes scopt to intercept the custom SecurityException
-       * and then use that as evidence to exit with a code of 1.
-       */
-      val (out, _, result) = grabStdOutErr { catchStatus { f.stage.main(Array("--help")) } }
+      val (out, _, result) = grabStdOutErr { f.stage.mainInner(Array("--help")) }
 
       Then("the usage text should be shown")
       out should include("Usage: firrtl")
@@ -296,18 +290,17 @@ class FirrtlMainSpec extends AnyFeatureSpec with GivenWhenThen with Matchers wit
       val outName = "FirrtlMainSpecNoTargetDirectory"
       val out = new File(s"$outName.hi.fir")
       out.delete()
-      val result = catchStatus {
-        f.stage.main(
+      val result =
+        f.stage.mainInner(
           Array("-i", "src/test/resources/integration/GCDTester.fir", "-o", outName, "-X", "high", "-E", "high")
         )
-      }
 
       Then("outputs should be written to current directory")
       out should (exist)
       out.delete()
 
       And("the exit code should be 0")
-      result shouldBe a[Right[_, _]]
+      result shouldBe 0
     }
 
     Scenario("User provides Protocol Buffer input") {
@@ -319,7 +312,7 @@ class FirrtlMainSpec extends AnyFeatureSpec with GivenWhenThen with Matchers wit
       copyResourceToFile("/integration/GCDTester.pb", protobufIn)
 
       When("the user tries to compile to High FIRRTL")
-      f.stage.main(
+      f.stage.mainInner(
         Array("-i", protobufIn.toString, "-X", "high", "-E", "high", "-td", td.buildDir.toString, "-o", "Foo")
       )
 
@@ -343,7 +336,7 @@ class FirrtlMainSpec extends AnyFeatureSpec with GivenWhenThen with Matchers wit
       }
 
       When("the user tries to emit a circuit to multiple Protocol Buffer files in the target directory")
-      f.stage.main(
+      f.stage.mainInner(
         inputFile ++ Array("-X", "none", "-p", "chirrtl", "-td", td.buildDir.toString)
       )
 
@@ -356,7 +349,7 @@ class FirrtlMainSpec extends AnyFeatureSpec with GivenWhenThen with Matchers wit
       // NOTE the .fir out needs to be a different directory than the multi proto out because
       // reruns will pick up the .fir and try to parse as .pb
       When("the user compiles the Protobufs to a single FIRRTL IR")
-      f.stage.main(
+      f.stage.mainInner(
         Array("-I", td.buildDir.toString, "-X", "none", "-E", "chirrtl", "-td", td.dir.toString, "-o", "Foo")
       )
 
@@ -379,7 +372,7 @@ class FirrtlMainSpec extends AnyFeatureSpec with GivenWhenThen with Matchers wit
       val f = new FirrtlMainFixture
 
       When("the user passes no arguments")
-      val (out, err, result) = grabStdOutErr { catchStatus { f.stage.main(Array.empty) } }
+      val (out, err, result) = grabStdOutErr { f.stage.mainInner(Array.empty) }
 
       Then("an error should be printed on stdout")
       out should include(s"Error: Unable to determine FIRRTL source to read")
@@ -391,7 +384,7 @@ class FirrtlMainSpec extends AnyFeatureSpec with GivenWhenThen with Matchers wit
       err should be(empty)
 
       And("the exit code should be 1")
-      result should be(Left(1))
+      result should be(1)
     }
   }
 
@@ -446,7 +439,7 @@ class FirrtlMainSpec extends AnyFeatureSpec with GivenWhenThen with Matchers wit
       val f = new FirrtlMainFixture
 
       When("the user passes '--show-registrations'")
-      val (out, _, result) = grabStdOutErr { catchStatus { f.stage.main(Array("--show-registrations")) } }
+      val (out, _, result) = grabStdOutErr { f.stage.mainInner(Array("--show-registrations")) }
 
       Then("stdout should show registered transforms")
       out should include("firrtl.passes.InlineInstances")
@@ -455,7 +448,7 @@ class FirrtlMainSpec extends AnyFeatureSpec with GivenWhenThen with Matchers wit
       out should include("firrtl.passes.memlib.MemLibOptions")
 
       And("the exit code should be 1")
-      result should be(Left(1))
+      result should be(1)
     }
   }
 

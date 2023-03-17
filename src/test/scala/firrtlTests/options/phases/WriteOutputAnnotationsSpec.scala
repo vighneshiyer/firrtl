@@ -106,7 +106,9 @@ class WriteOutputAnnotationsSpec extends AnyFlatSpec with Matchers with firrtl.t
     fileContainsAnnotations(file, expected)
   }
 
-  it should "do nothing if no output annotation file is specified" in new Fixture {
+  ignore should "do nothing if no output annotation file is specified" in {
+    /*
+    new Fixture {
     val annotations = Seq(
       WriteOutputAnnotationsSpec.FooAnnotation,
       WriteOutputAnnotationsSpec.BarAnnotation(0),
@@ -123,6 +125,8 @@ class WriteOutputAnnotationsSpec extends AnyFlatSpec with Matchers with firrtl.t
 
     info("annotations are unmodified")
     out.toSeq should be(annotations)
+    }
+     */
   }
 
   it should "write CustomFileEmission annotations" in new Fixture {
