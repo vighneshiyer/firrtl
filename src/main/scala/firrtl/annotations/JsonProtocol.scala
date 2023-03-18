@@ -260,6 +260,7 @@ object JsonProtocol extends LazyLogging {
     Try(writePretty(annos)).recoverWith {
       case e: org.json4s.MappingException =>
         val badAnnos = findUnserializeableAnnos(annos)
+        throw e
         Failure(if (badAnnos.isEmpty) e else UnserializableAnnotationException(badAnnos))
     }
   }

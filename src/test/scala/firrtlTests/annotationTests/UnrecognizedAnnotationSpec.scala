@@ -12,6 +12,7 @@ import logger.Logger
 import logger.Logger.OutputCaptor
 
 import java.io.{File, PrintWriter}
+import org.json4s.convertToJsonInput
 
 class UnrecognizedAnnotationSpec extends FirrtlFlatSpec {
   behavior.of("unrecognized annotations can be carried through serialization and deserialization")
